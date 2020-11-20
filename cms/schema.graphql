@@ -1,0 +1,76 @@
+type Page
+  @model
+  @auth(
+    rules: [
+      { allow: owner }
+      { allow: private, operations: [read] }
+      { allow: public, operations: [read] }
+    ]
+  ) {
+  id: ID!
+  title: String!
+  body: String
+}
+
+type Post
+  @model
+  @auth(
+    rules: [
+      { allow: owner }
+      { allow: private, operations: [read] }
+      { allow: public, operations: [read] }
+    ]
+  ) {
+  id: ID!
+  title: String!
+  body: String
+  editors: [PostEditor] @connection(keyName: "byPost", fields: ["id"])
+  comments: [Comment] @connection(keyName: "byPost", fields: ["id"])
+}
+
+type PostEditor
+  @model(queries: null)
+  @auth(
+    rules: [
+      { allow: owner }
+      { allow: private, operations: [read] }
+      { allow: public, operations: [read] }
+    ]
+  )
+  @key(name: "byPost", fields: ["postId", "editorId"])
+  @key(name: "byEditor", fields: ["editorId", "postId"]) {
+  id: ID!
+  postId: ID!
+  editorId: ID!
+  post: Post! @connection(fields: ["postId"])
+  editor: User! @connection(fields: ["editorId"])
+}
+
+type User
+  @model
+  @auth(
+    rules: [
+      { allow: owner }
+      { allow: private, operations: [read] }
+      { allow: public, operations: [read] }
+    ]
+  ) {
+  id: ID!
+  username: String!
+  posts: [PostEditor] @connection(keyName: "byEditor", fields: ["id"])
+}
+
+type Comment
+  @model
+  @auth(
+    rules: [
+      { allow: owner }
+      { allow: private, operations: [read] }
+      { allow: public, operations: [read] }
+    ]
+  )
+  @key(name: "byPost", fields: ["postId", "body"]) {
+  id: ID!
+  postId: ID!
+  body: String!
+}
