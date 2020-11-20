@@ -1,0 +1,28 @@
+type Bookmark @model @auth(rules: [{ allow: owner }]) {
+  id: ID!
+  title: String!
+  path: String!
+  description: String
+  source: String
+  topics: [BookmarkTopic] @connection(keyName: "byBookmark", fields: ["id"])
+  notes: [String]
+}
+
+type BookmarkTopic
+  @model(queries: null)
+  @auth(rules: [{ allow: owner }])
+  @keyName(name: "byBookmark", fields: ["bookmarkId", "topicId"])
+  @keyName(name: "byTopic", fields: ["topicId", "bookmarkId"]) {
+  id: ID!
+  bookmarkId: ID!
+  topicId: ID!
+  bookmark: Bookmark! @connection(fields: ["bookmarkId", "topicId"])
+  topic: Topic! @connection(fields: ["topicId", "bookmarkId"])
+}
+
+type Topic @model @auth(rules: [{ allow: owner }]) {
+  id: ID!
+  name: String!
+  description: String
+  bookmarks: [Bookmark] @connection(keyName: "byTopic", fields: ["id"])
+}
