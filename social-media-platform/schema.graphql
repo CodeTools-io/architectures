@@ -1,0 +1,149 @@
+# WIP - Not ready for use
+type Account @model @auth(rules: [{ allow: owner }]) {
+  id: ID!
+  ownerId: ID!
+  settings: AWSJSON
+  accountEvents: [AccountEvent]
+}
+type AccountEvent {
+  id: ID!
+  type: String!
+  ownerId: ID!
+  createdAt: AWSDate!
+  ip: AWSIPAddress!
+}
+type Profile
+  @model
+  @auth(
+    rules: [
+      { allow: owner }
+      { allow: private, operations: [read] }
+      { allow: public, operations: [read] }
+    ]
+  ) {
+  id: ID!
+  name: String!
+  birthday: AWSDate
+  sex: String
+  relationshipStatus: String
+  picture: String
+  ownerId: ID!
+  followers: [Follow] @connection(keyName: "byProfile", fields: ["id"])
+}
+type Post
+  @model
+  @auth(
+    rules: [
+      { allow: owner }
+      { allow: private, operations: [read] }
+      { allow: public, operations: [read] }
+    ]
+  ) {
+  id: ID!
+  title: String!
+  body: String
+  editors: [PostEditor] @connection(keyName: "byPost", fields: ["id"])
+  comments: [Comment] @connection(keyName: "byPost", fields: ["id"])
+  shares: [Share] @connection(keyName: "byPost", fields: ["id"])
+  likes: [Like] @connection(keyName: "byPost", fields: ["id"])
+  attachments: [Attachment]
+}
+type PostEditor
+  @model(queries: null)
+  @auth(
+    rules: [
+      { allow: owner }
+      { allow: private, operations: [read] }
+      { allow: public, operations: [read] }
+    ]
+  )
+  @key(name: "byPost", fields: ["postId", "editorId"])
+  @key(name: "byEditor", fields: ["editorId", "postId"]) {
+  id: ID!
+  postId: ID!
+  editorId: ID!
+  post: Post! @connection(fields: ["postId"])
+  editor: User! @connection(fields: ["editorId"])
+}
+type User
+  @model
+  @auth(
+    rules: [
+      { allow: owner }
+      { allow: private, operations: [read] }
+      { allow: public, operations: [read] }
+    ]
+  ) {
+  id: ID!
+  username: String!
+  posts: [PostEditor] @connection(keyName: "byEditor", fields: ["id"])
+}
+type Comment
+  @model
+  @auth(
+    rules: [
+      { allow: owner }
+      { allow: private, operations: [read] }
+      { allow: public, operations: [read] }
+    ]
+  )
+  @key(name: "byPost", fields: ["postId", "body"]) {
+  id: ID!
+  postId: ID!
+  body: String!
+}
+type Conversation @model {
+  id: ID!
+  participantIds: [ID]!
+  messages: [DirectMessage]!
+}
+type DirectMessage @model {
+  id: ID!
+  conversationId: ID!
+  body: String!
+}
+type Share
+  @model
+  @auth(
+    rules: [
+      { allow: owner }
+      { allow: private, operations: [read] }
+      { allow: public, operations: [read] }
+    ]
+  )
+  @key(name: "byPost", fields: ["postId"]) {
+  id: ID!
+  postId: ID!
+  body: String!
+}
+type Attachment {
+  id: ID!
+  source: String!
+  mediaType: String!
+}
+type Like
+  @model
+  @auth(
+    rules: [
+      { allow: owner }
+      { allow: private, operations: [read] }
+      { allow: public, operations: [read] }
+    ]
+  )
+  @key(name: "byPost", fields: ["postId"]) {
+  id: ID!
+  postId: ID!
+}
+type Follow
+  @model
+  @auth(
+    rules: [
+      { allow: owner }
+      { allow: private, operations: [read] }
+      { allow: public, operations: [read] }
+    ]
+  )
+  @key(name: "byProfile", fields: ["profileId"]) {
+  id: ID!
+  profileId: ID!
+}
